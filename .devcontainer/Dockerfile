@@ -33,12 +33,14 @@ RUN GO111MODULE=on go get -v \
     github.com/axw/gocov/gocov@latest \
     github.com/AlekSi/gocov-xml \
     github.com/wadey/gocovmerge \
-    gopkg.in/yaml.v3 \
+    gopkg.in/yaml.v2 \
     github.com/cweill/gotests/gotests \
     github.com/ory/go-acc \
     github.com/swaggo/swag/cmd/swag \
     github.com/rakyll/gotest \
     github.com/ramya-rao-a/go-outline \
+    github.com/spf13/pflag \
+    github.com/spf13/viper \
     github.com/spf13/cobra/cobra \
     2>&1
 
