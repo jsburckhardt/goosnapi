@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"time"
 
@@ -28,8 +29,8 @@ type NSOpenSkyResponse struct {
 	States [][]interface{} `json:"states"`
 }
 type OpenSkyResponse struct {
-	Time   int64   `json:"time"`
-	States []State `json:"states"`
+	Time   time.Time `json:"time"`
+	States []State   `json:"states"`
 }
 
 var CONFIG = "config.yaml"
@@ -63,29 +64,28 @@ func main() {
 	viper.SetConfigFile(CONFIG)
 	err := viper.ReadInConfig()
 	if err != nil {
-		panic(fmt.Errorf("Fatal error config file: %s \n", err))
+		log.Fatalf("Fatal error reading config file. Err: %+v\n", err)
 	}
 	var t ConfigStructure
 	err = viper.Unmarshal(&t)
 	if err != nil {
-		fmt.Println(err)
-		return
+		log.Panicf("Fatal error unmarshalling config. Err: %+v\n", err)
 	}
 
 	// retrive data every "Frequency" seconds
-	var sr OpenSkyResponse
-	var ur NSOpenSkyResponse
 	for {
+		var ur NSOpenSkyResponse
+		var sr OpenSkyResponse
 		url := fmt.Sprintf("https://opensky-network.org/api/states/all?lamin=%s&lomin=%s&lamax=%s&lomax=%s", fmt.Sprintf("%.4f", t.OpenSky.MinLatitude), fmt.Sprintf("%.4f", t.OpenSky.MinLongitude), fmt.Sprintf("%.4f", t.OpenSky.MaxLatitude), fmt.Sprintf("%.4f", t.OpenSky.MaxLongitude))
 		req, _ := http.NewRequest("GET", url, nil)
 		res, err := http.DefaultClient.Do(req)
 		if err != nil {
-			panic(err)
+			log.Printf("error making the request. error: %+v\n", err)
 		}
 		body, _ := ioutil.ReadAll(res.Body)
 		err = json.Unmarshal(body, &ur)
 		if err != nil {
-			fmt.Println(err)
+			log.Printf("error unmarshalling request body. error: %+v\n", err)
 		}
 
 		// Process the response
@@ -99,7 +99,7 @@ func main() {
 
 func printStructuredResponse(sr OpenSkyResponse) {
 	fmt.Printf("Got %d records.\n", len(sr.States))
-	fmt.Printf("Time: ", sr.Time)
+	fmt.Printf("Time: %v\n", sr.Time)
 	for _, s := range sr.States {
 		fmt.Printf("ICAO24: %+v\t", s.ICAO24)
 		fmt.Printf("CallSign: %+v\t", s.CallSign)
@@ -122,12 +122,12 @@ func printStructuredResponse(sr OpenSkyResponse) {
 }
 
 func parseNonStructuredResponseToStructureResponse(nonStructuredOpenSkyResponse *NSOpenSkyResponse, structuredOpenSkyResponse *OpenSkyResponse) {
-	structuredOpenSkyResponse.Time = nonStructuredOpenSkyResponse.Time
+	structuredOpenSkyResponse.Time = time.Unix(nonStructuredOpenSkyResponse.Time, 0)
 	for i, unstructureState := range nonStructuredOpenSkyResponse.States {
 		var structuredState State
 		structuredState, err := parseState(unstructureState, i)
 		if err != nil {
-			fmt.Println(err)
+			log.Printf("error parsing state. error: %+v\n", err)
 		}
 		structuredOpenSkyResponse.States = append(structuredOpenSkyResponse.States, structuredState)
 	}
@@ -143,7 +143,7 @@ func parseState(s []interface{}, i int) (state State, err error) {
 	// icao24
 	icao24, ok := s[0].(string)
 	if !ok {
-		err = fmt.Errorf("invalid icao24 value at position %d: %v", i, s[0])
+		err = formatParsingError("icao24", i, s[0])
 		return
 	}
 	// callsign
@@ -151,14 +151,14 @@ func parseState(s []interface{}, i int) (state State, err error) {
 	if s[1] != nil {
 		callsign, ok = s[1].(string)
 		if !ok {
-			err = fmt.Errorf("invalid callsign value at position %d: %v", i, s[1])
+			err = formatParsingError("callsign", i, s[1])
 			return
 		}
 	}
 	// origin_country
 	originCountry, ok := s[2].(string)
 	if !ok {
-		err = fmt.Errorf("invalid origin_country value at position %d: %v", i, s[2])
+		err = formatParsingError("originCountry", i, s[2])
 		return
 	}
 	// time_position
@@ -167,7 +167,7 @@ func parseState(s []interface{}, i int) (state State, err error) {
 	if s[3] != nil {
 		rawTimePosition, err = jsonNumberToInt(s[3])
 		if err != nil {
-			err = fmt.Errorf("invalid time_position value at position %d: %w", i, err)
+			err = formatParsingError("timePosition", i, s[3])
 			return
 		}
 		unixTime := time.Unix(rawTimePosition, 0)
@@ -177,7 +177,7 @@ func parseState(s []interface{}, i int) (state State, err error) {
 	var lastContact int64
 	lastContact, err = jsonNumberToInt(s[4])
 	if err != nil {
-		err = fmt.Errorf("invalid last_contact value at position %d: %w", i, err)
+		err = formatParsingError("lastContact", i, s[4])
 		return
 	}
 	// longitude
@@ -201,7 +201,7 @@ func parseState(s []interface{}, i int) (state State, err error) {
 	// on_ground
 	onGround, ok := s[8].(bool)
 	if !ok {
-		err = fmt.Errorf("invalid on_ground value at position %d: %v", i, s[8])
+		err = formatParsingError("onGround", i, s[8])
 		return
 	}
 	// velocity
@@ -227,7 +227,7 @@ func parseState(s []interface{}, i int) (state State, err error) {
 	if s[12] != nil {
 		sensors, err = jsonNumberArrayToIntArray(s[12])
 		if err != nil {
-			err = fmt.Errorf("invalid sensors value at position %d: %w", i, err)
+			err = formatParsingError("sensors", i, s[12])
 			return
 		}
 	}
@@ -244,21 +244,21 @@ func parseState(s []interface{}, i int) (state State, err error) {
 	if s[14] != nil {
 		squawk, ok = s[14].(string)
 		if !ok {
-			err = fmt.Errorf("invalid squawk value at position %d: %v", i, s[14])
+			err = formatParsingError("squawk", i, s[14])
 			return
 		}
 	}
 	// spi
 	spi, ok := s[15].(bool)
 	if !ok {
-		err = fmt.Errorf("invalid spi value at position %d: %v", i, s[15])
+		err = formatParsingError("spi", i, s[15])
 		return
 	}
 	// position_source
 	var positionSource int64
 	positionSource, err = jsonNumberToInt(s[16])
 	if err != nil {
-		err = fmt.Errorf("invalid position_source value at position %d: %w", i, err)
+		err = formatParsingError("positionSource", i, s[16])
 		return
 	}
 	// Set state values
@@ -282,6 +282,10 @@ func parseState(s []interface{}, i int) (state State, err error) {
 		PositionSource:     PositionSource(positionSource),
 	}
 	return
+}
+
+func formatParsingError(name string, i int, s interface{}) error {
+	return fmt.Errorf("invalid %s value at position %d: %+v", name, i, s)
 }
 
 // Helper function to convert a number received in a json object to an int64 type.
