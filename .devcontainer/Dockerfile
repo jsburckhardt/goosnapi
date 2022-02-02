@@ -1,4 +1,4 @@
-# See here for image contents: https://github.com/microsoft/vscode-dev-containers/tree/v0.208.0/containers/go/.devcontainer/base.Dockerfile
+# See here for image contents: https://github.com/microsoft/vscode-dev-containers/tree/v0.209.6/containers/go/.devcontainer/base.Dockerfile
 
 # [Choice] Go version (use -bullseye variants on local arm64/Apple Silicon): 1, 1.16, 1.17, 1-bullseye, 1.16-bullseye, 1.17-bullseye, 1-buster, 1.16-buster, 1.17-buster
 ARG VARIANT="1.17-bullseye"
@@ -9,12 +9,10 @@ ARG NODE_VERSION="none"
 RUN if [ "${NODE_VERSION}" != "none" ]; then su vscode -c "umask 0002 && . /usr/local/share/nvm/nvm.sh && nvm install ${NODE_VERSION} 2>&1"; fi
 
 # [Optional] Uncomment this section to install additional OS packages.
-RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
-    && apt-get -y install --no-install-recommends apt-transport-https \
-    dnsutils \
-    inotify-tools
+# RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
+#     && apt-get -y install --no-install-recommends <your-package-list-here>
 
-RUN sed -i -E -e 's/^plugins=.*/plugins=(git golang)/' /home/vscode/.zshrc
+RUN sed -i -E -e 's/^plugins=.*/plugins=(git zsh-autosuggestions zsh-syntax-highlighting golang)/' /home/vscode/.zshrc
 
 RUN SNIPPET="export PROMPT_COMMAND='history -a' && export HISTFILE=/commandhistory/.bash_history" \
     && mkdir /commandhistory \
@@ -24,8 +22,10 @@ RUN SNIPPET="export PROMPT_COMMAND='history -a' && export HISTFILE=/commandhisto
 
 # [Optional] Uncomment the next lines to use go get to install anything else you need
 USER vscode
+RUN git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
+RUN git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
 RUN curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.35.2
-RUN GO111MODULE=on go get -v \
+RUN GO111MODULE=on go get -u -v \
     golang.org/x/tools/gopls@latest \
     golang.org/x/lint/golint@latest \
     github.com/go-delve/delve/cmd/dlv@latest \
@@ -39,10 +39,9 @@ RUN GO111MODULE=on go get -v \
     github.com/swaggo/swag/cmd/swag \
     github.com/rakyll/gotest \
     github.com/ramya-rao-a/go-outline \
-    github.com/spf13/pflag \
-    github.com/spf13/viper \
     github.com/spf13/cobra/cobra \
     2>&1
+
 
 # [Optional] Uncomment this line to install global node packages.
 # RUN su vscode -c "source /usr/local/share/nvm/nvm.sh && npm install -g <your-package-here>" 2>&1
