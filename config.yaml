@@ -1,0 +1,6 @@
+opensky:
+  minlatitude: -40.110403
+  maxlatitude: -24.267845
+  minlongitude: 139.147805
+  maxlongitude: 154.590532
+frequency: 5
