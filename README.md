@@ -2,13 +2,13 @@
 
 A Go wrapper for GET/ALL STATES [OpenSky Network API](https://github.com/jsburckhardt/goosnapi)
 
-## run
+## Run
 
 ```bash
 go run main.go track --config "./config.yaml"
 ```
 
-## build
+## Build
 
 ```bash
 make prepare-checkin
