@@ -18,34 +18,34 @@
 	// Set *default* container specific settings.json values on container create.
 	"settings": {
 		"terminal.integrated.defaultProfile.linux": "zsh",
-		"go.toolsManagement.checkForUpdates": "local",
-		"go.useLanguageServer": true,
-		"go.gopath": "/go",
-		"go.goroot": "/usr/local/go",
-		"go.lintFlags": [
-            "--fast"
-        ],
-        "[go]": {
-            "editor.formatOnSave": true,
-            "editor.codeActionsOnSave": {
-                "source.organizeImports": true,
-            },
-            // Optional: Disable snippets, as they conflict with completion ranking.
-            "editor.snippetSuggestions": "bottom",
-        },
-        "[go.mod]": {
-            "editor.formatOnSave": true,
-            "editor.codeActionsOnSave": {
-                "source.organizeImports": true,
-            },
-        },
-        "gopls": {
-            // Add parameter placeholders when completing a function.
-            "usePlaceholders": true,
-            // If true, enable additional analyses with staticcheck.
-            // Warning: This will significantly increase memory usage.
-            "staticcheck": false,
-        }
+		// "go.toolsManagement.checkForUpdates": "local",
+		// "go.useLanguageServer": true,
+		// "go.gopath": "/go",
+		// "go.goroot": "/usr/local/go",
+		// "go.lintFlags": [
+        //     "--fast"
+        // ],
+        // "[go]": {
+        //     "editor.formatOnSave": true,
+        //     "editor.codeActionsOnSave": {
+        //         "source.organizeImports": true,
+        //     },
+        //     // Optional: Disable snippets, as they conflict with completion ranking.
+        //     "editor.snippetSuggestions": "bottom",
+        // },
+        // "[go.mod]": {
+        //     "editor.formatOnSave": true,
+        //     "editor.codeActionsOnSave": {
+        //         "source.organizeImports": true,
+        //     },
+        // },
+        // "gopls": {
+        //     // Add parameter placeholders when completing a function.
+        //     "usePlaceholders": true,
+        //     // If true, enable additional analyses with staticcheck.
+        //     // Warning: This will significantly increase memory usage.
+        //     "staticcheck": false,
+        // }
 	},
 
 	// Add the IDs of extensions you want installed when the container is created.
@@ -75,9 +75,10 @@
 	"remoteUser": "vscode",
 	"features": {
 		"docker-from-docker": "latest",
-		"kubectl-helm-minikube": "latest",
-		"git": "latest",
-		"azure-cli": "latest"
+		"kubectl-helm-minikube": "latest"
+		// ,
+		// "git": "latest",
+		// "azure-cli": "latest"
 	},
 	"mounts": [
         "source=${env:HOME}${env:USERPROFILE}/.ssh,target=/root/.ssh,type=bind,readonly",

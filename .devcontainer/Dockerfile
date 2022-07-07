@@ -8,39 +8,42 @@ FROM mcr.microsoft.com/vscode/devcontainers/go:0-${VARIANT}
 ARG NODE_VERSION="none"
 RUN if [ "${NODE_VERSION}" != "none" ]; then su vscode -c "umask 0002 && . /usr/local/share/nvm/nvm.sh && nvm install ${NODE_VERSION} 2>&1"; fi
 
+RUN wget -q -O - https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
+RUN curl -Lo ./k9s.tar.gz https://github.com/derailed/k9s/releases/download/v0.25.18/k9s_Linux_x86_64.tar.gz && \
+    mkdir k9s && tar xvzf k9s.tar.gz -C ./k9s && mv ./k9s/k9s /bin/k9s
 # [Optional] Uncomment this section to install additional OS packages.
 # RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
 #     && apt-get -y install --no-install-recommends <your-package-list-here>
 
-RUN sed -i -E -e 's/^plugins=.*/plugins=(git zsh-autosuggestions zsh-syntax-highlighting golang)/' /home/vscode/.zshrc
+# RUN sed -i -E -e 's/^plugins=.*/plugins=(git zsh-autosuggestions zsh-syntax-highlighting golang)/' /home/vscode/.zshrc
 
-RUN SNIPPET="export PROMPT_COMMAND='history -a' && export HISTFILE=/commandhistory/.bash_history" \
-    && mkdir /commandhistory \
-    && touch /commandhistory/.bash_history \
-    && chown -R vscode /commandhistory \
-    && echo $SNIPPET >> "/home/vscode/.bashrc"
+# RUN SNIPPET="export PROMPT_COMMAND='history -a' && export HISTFILE=/commandhistory/.bash_history" \
+#     && mkdir /commandhistory \
+#     && touch /commandhistory/.bash_history \
+#     && chown -R vscode /commandhistory \
+#     && echo $SNIPPET >> "/home/vscode/.bashrc"
 
-# [Optional] Uncomment the next lines to use go get to install anything else you need
-USER vscode
-RUN git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
-RUN git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
-RUN curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.35.2
-RUN GO111MODULE=on go get -u -v \
-    golang.org/x/tools/gopls@latest \
-    golang.org/x/lint/golint@latest \
-    github.com/go-delve/delve/cmd/dlv@latest \
-    github.com/jstemmer/go-junit-report@latest \
-    github.com/axw/gocov/gocov@latest \
-    github.com/AlekSi/gocov-xml \
-    github.com/wadey/gocovmerge \
-    gopkg.in/yaml.v2 \
-    github.com/cweill/gotests/gotests \
-    github.com/ory/go-acc \
-    github.com/swaggo/swag/cmd/swag \
-    github.com/rakyll/gotest \
-    github.com/ramya-rao-a/go-outline \
-    github.com/spf13/cobra/cobra \
-    2>&1
+# # [Optional] Uncomment the next lines to use go get to install anything else you need
+# USER vscode
+# RUN git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
+# RUN git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
+# RUN curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.35.2
+# RUN GO111MODULE=on go get -u -v \
+#     golang.org/x/tools/gopls@latest \
+#     golang.org/x/lint/golint@latest \
+#     github.com/go-delve/delve/cmd/dlv@latest \
+#     github.com/jstemmer/go-junit-report@latest \
+#     github.com/axw/gocov/gocov@latest \
+#     github.com/AlekSi/gocov-xml \
+#     github.com/wadey/gocovmerge \
+#     gopkg.in/yaml.v2 \
+#     github.com/cweill/gotests/gotests \
+#     github.com/ory/go-acc \
+#     github.com/swaggo/swag/cmd/swag \
+#     github.com/rakyll/gotest \
+#     github.com/ramya-rao-a/go-outline \
+#     github.com/spf13/cobra/cobra \
+#     2>&1
 
 
 # [Optional] Uncomment this line to install global node packages.
