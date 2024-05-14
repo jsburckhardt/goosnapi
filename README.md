@@ -1,6 +1,6 @@
 # GO OpensSky Network API 
 
-A Go wrapper for GET/ALL STATES [OpenSky Network API](https://github.com/jsburckhardt/goosnapi)
+A Go wrapper for GET/ALL STATES [OpenSky Network API](https://openskynetwork.github.io/opensky-api/)
 
 ## Run
 
